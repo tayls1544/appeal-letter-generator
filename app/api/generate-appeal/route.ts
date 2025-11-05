@@ -1,12 +1,21 @@
 import { Anthropic } from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
 
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
-
 export async function POST(request: NextRequest) {
   try {
+    // Check for API key
+    if (!process.env.ANTHROPIC_API_KEY) {
+      console.error("ANTHROPIC_API_KEY environment variable is not set");
+      return NextResponse.json(
+        { error: "API key not configured. Please add ANTHROPIC_API_KEY to environment variables." },
+        { status: 500 }
+      );
+    }
+
+    const client = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    });
+
     const body = await request.json();
 
     const {
@@ -80,22 +89,24 @@ Generate a persuasive, professional appeal email that incorporates all these det
   } catch (error) {
     console.error("Error generating appeal:", error);
 
+    let errorMessage = "Failed to generate appeal letter";
+    let statusCode = 500;
+
     if (error instanceof Error) {
-      if (error.message.includes("401")) {
-        return NextResponse.json(
-          { error: "Invalid API key. Please check your configuration." },
-          { status: 401 }
-        );
+      errorMessage = error.message;
+
+      if (error.message.includes("401") || error.message.includes("Unauthorized")) {
+        statusCode = 401;
+        errorMessage = "Invalid API key. Please check your configuration.";
+      } else if (error.message.includes("rate limit")) {
+        statusCode = 429;
+        errorMessage = "Rate limit exceeded. Please try again later.";
       }
-      return NextResponse.json(
-        { error: error.message },
-        { status: 500 }
-      );
     }
 
     return NextResponse.json(
-      { error: "Failed to generate appeal letter" },
-      { status: 500 }
+      { error: errorMessage },
+      { status: statusCode }
     );
   }
 }
