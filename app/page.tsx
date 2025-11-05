@@ -70,7 +70,6 @@ export default function Home() {
             <AppealForm
               onSubmit={handleGenerateAppeal}
               isLoading={isLoading}
-              onReset={handleReset}
             />
           </div>
 

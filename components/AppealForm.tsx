@@ -12,13 +12,11 @@ interface AppealFormProps {
     keyFacts: string;
   }) => Promise<void>;
   isLoading: boolean;
-  onReset: () => void;
 }
 
 export default function AppealForm({
   onSubmit,
   isLoading,
-  onReset,
 }: AppealFormProps) {
   const [formData, setFormData] = useState({
     referenceNumber: "",
